@@ -200,3 +200,6 @@ Icon?
 # Backup files
 *.bak
 *.backup
+
+# local files
+/documents/
