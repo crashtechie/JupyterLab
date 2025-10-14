@@ -1,5 +1,10 @@
 # Jupyter Lab Data Science Project
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docs.docker.com/compose/)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Lab-orange.svg)](https://jupyterlab.readthedocs.io/)
+[![Cross-Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen.svg)](https://github.com)
+
 A professional Docker Compose setup for Jupyter Lab using the `jupyter/datascience-notebook` image with additional services for comprehensive data science workflows.
 
 ## 🚀 Quick Start
@@ -368,12 +373,51 @@ docker compose --verbose up -d
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+We welcome contributions to improve this Docker Compose Jupyter Lab setup! Here's how you can help:
+
+### How to Contribute
+1. **Fork the repository** on GitHub
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Make your changes** and test thoroughly using the provided test scripts
+4. **Run the test suite** for your platform:
+   - Windows: `.\scripts\tests\run_tests.ps1`
+   - Linux: `./scripts/tests/run_tests_linux.sh`
+   - macOS: `./scripts/tests/run_tests_macos.sh`
+5. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+6. **Push to the branch** (`git push origin feature/amazing-feature`)
+7. **Submit a Pull Request**
+
+### Contribution Guidelines
+- Ensure cross-platform compatibility (Windows, Linux, macOS)
+- Update documentation for any new features
+- Add or update tests as needed
+- Follow existing code style and conventions
+- Test your changes thoroughly before submitting
+
+### Areas for Contribution
+- Additional platform-specific optimizations
+- New Jupyter extensions or scientific packages
+- Enhanced testing capabilities
+- Documentation improvements
+- Performance optimizations
+- Security enhancements
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for full details.
+
+### MIT License Summary
+- ✅ **Commercial use** - Use this project in commercial applications
+- ✅ **Modification** - Modify the source code to suit your needs
+- ✅ **Distribution** - Distribute original or modified versions
+- ✅ **Private use** - Use this project for personal projects
+- ❌ **Liability** - Authors are not liable for any damages
+- ❌ **Warranty** - No warranty is provided with this software
+
+### Third-Party Licenses
+This project uses Docker images and packages with their own licenses:
+- **jupyter/datascience-notebook**: [Jupyter Docker Stacks License](https://github.com/jupyter/docker-stacks/blob/main/LICENSE.md)
+- **PostgreSQL**: [PostgreSQL License](https://www.postgresql.org/about/licence/)
+- **Redis**: [Redis License](https://redis.io/docs/about/license/)
+
+For questions about licensing, please open an issue or contact the maintainers.
