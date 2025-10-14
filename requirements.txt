@@ -38,6 +38,11 @@ black>=23.12.0               # Code formatter
 isort>=5.13.0                # Import sorter
 flake8>=6.1.0                # Linting
 
+# Security & Cryptography
+urllib3>=2.5.0               # Secure HTTP client (security fix)
+cryptography>=46.0.0         # Cryptographic recipes and primitives
+requests>=2.31.0             # HTTP library with security updates
+
 # Utilities
 python-dotenv>=1.0.0         # Environment variables
 tqdm>=4.66.0                 # Progress bars
