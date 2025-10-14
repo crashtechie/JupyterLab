@@ -1,0 +1,70 @@
+services:
+  jupyter:
+    image: jupyter/datascience-notebook:latest
+    container_name: jupyterlab-datascience
+    ports:
+      - "8888:8888"
+    volumes:
+      # Mount notebooks directory
+      - ./notebooks:/home/jovyan/work/notebooks
+      # Mount data directory for datasets
+      - ./data:/home/jovyan/work/data
+      # Mount scripts directory for Python modules
+      - ./scripts:/home/jovyan/work/scripts
+      # Mount outputs directory for results
+      - ./outputs:/home/jovyan/work/outputs
+    environment:
+      # Enable Jupyter Lab interface
+      - JUPYTER_ENABLE_LAB=yes
+      # Set token for authentication (change this!)
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-datascience-token}
+      # Grant sudo access (optional, for package installation)
+      - GRANT_SUDO=yes
+      # Set timezone
+      - TZ=America/New_York
+      # Python path to include custom modules
+      - PYTHONPATH=/home/jovyan/work/scripts
+    working_dir: /home/jovyan/work
+    user: root
+    restart: unless-stopped
+    networks:
+      - jupyter-network
+
+  # Optional: Add PostgreSQL database for data storage
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: jupyterlab-postgres
+  #   environment:
+  #     - POSTGRES_DB=datascience
+  #     - POSTGRES_USER=jupyter
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./database/init:/docker-entrypoint-initdb.d
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - jupyter-network
+  #   profiles:
+  #     - database
+
+  # Optional: Add Redis for caching
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: jupyterlab-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - jupyter-network
+  #   profiles:
+  #     - cache
+
+# volumes:
+#   postgres_data:
+#   redis_data:
+
+networks:
+  jupyter-network:
+    driver: bridge
