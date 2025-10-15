@@ -1,0 +1,41 @@
+# Docker Compose Test Configuration
+# This file extends docker-compose.yml for testing purposes
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml exec jupyter pytest
+#
+# Or run specific security tests:
+#   docker-compose -f docker-compose.yml -f docker-compose.test.yml exec jupyter \
+#     python /home/jovyan/work/scripts/tests/test_docker_security_fixes.py
+
+services:
+  jupyter:
+    # Override environment variables for testing
+    environment:
+      # Use a test token
+      - JUPYTER_TOKEN=test-token-for-validation
+      # Add Python path for custom modules
+      - PYTHONPATH=/home/jovyan/work/scripts
+      # Mark as Docker container for tests
+      - DOCKER_CONTAINER=true
+      # Testing environment marker
+      - TESTING=true
+    
+    # Keep container running for manual testing if needed
+    command: >
+      bash -c "
+      echo '==================================' &&
+      echo 'JupyterLab Test Environment Ready' &&
+      echo '==================================' &&
+      echo 'Run security tests with:' &&
+      echo '  docker-compose -f docker-compose.yml -f docker-compose.test.yml exec jupyter python /home/jovyan/work/scripts/tests/test_docker_security_fixes.py' &&
+      echo '' &&
+      echo 'Run individual tests:' &&
+      echo '  docker-compose -f docker-compose.yml -f docker-compose.test.yml exec jupyter python /home/jovyan/work/scripts/tests/test_path_traversal_fix.py' &&
+      echo '  docker-compose -f docker-compose.yml -f docker-compose.test.yml exec jupyter python /home/jovyan/work/scripts/tests/test_command_injection_fix.py' &&
+      echo '' &&
+      echo 'Access Jupyter Lab at: http://localhost:8888' &&
+      echo '==================================' &&
+      start-notebook.sh --NotebookApp.token='test-token-for-validation'
+      "

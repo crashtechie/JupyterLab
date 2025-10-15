@@ -5,6 +5,8 @@ Utility functions for data science workflows.
 import os
 import sys
 import logging
+import subprocess
+import shlex
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 import pandas as pd
@@ -39,7 +41,7 @@ def get_project_root() -> Path:
 
 def get_data_path(filename: str, data_type: str = "raw") -> Path:
     """
-    Get path to data file.
+    Get path to data file with path traversal protection.
     
     Args:
         filename: Name of the data file
@@ -47,12 +49,33 @@ def get_data_path(filename: str, data_type: str = "raw") -> Path:
         
     Returns:
         Path to data file
+        
+    Raises:
+        ValueError: If path traversal attempt is detected
     """
-    return get_project_root() / "data" / data_type / filename
+    # Validate data_type is in allowed list
+    allowed_data_types = ["raw", "processed", "external"]
+    if data_type not in allowed_data_types:
+        raise ValueError(f"Invalid data_type. Must be one of: {allowed_data_types}")
+    
+    # Build base directory
+    base_dir = get_project_root() / "data" / data_type
+    base_dir_resolved = base_dir.resolve()
+    
+    # Resolve target path and ensure it's within base directory
+    target_path = (base_dir / filename).resolve()
+    
+    # Check for path traversal
+    try:
+        target_path.relative_to(base_dir_resolved)
+    except ValueError:
+        raise ValueError(f"Path traversal attempt detected: {filename}")
+    
+    return target_path
 
 def get_output_path(filename: str, output_type: str = "figures") -> Path:
     """
-    Get path to output file.
+    Get path to output file with path traversal protection.
     
     Args:
         filename: Name of the output file
@@ -60,10 +83,32 @@ def get_output_path(filename: str, output_type: str = "figures") -> Path:
         
     Returns:
         Path to output file
+        
+    Raises:
+        ValueError: If path traversal attempt is detected
     """
+    # Validate output_type is in allowed list
+    allowed_output_types = ["figures", "models", "reports"]
+    if output_type not in allowed_output_types:
+        raise ValueError(f"Invalid output_type. Must be one of: {allowed_output_types}")
+    
+    # Build base directory
     output_dir = get_project_root() / "outputs" / output_type
+    output_dir_resolved = output_dir.resolve()
+    
+    # Create directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir / filename
+    
+    # Resolve target path and ensure it's within base directory
+    target_path = (output_dir / filename).resolve()
+    
+    # Check for path traversal
+    try:
+        target_path.relative_to(output_dir_resolved)
+    except ValueError:
+        raise ValueError(f"Path traversal attempt detected: {filename}")
+    
+    return target_path
 
 def load_config(config_file: str = "config.json") -> Dict[str, Any]:
     """
@@ -183,3 +228,123 @@ def print_dataframe_info(df: pd.DataFrame, name: str = "DataFrame") -> None:
     
     print(f"\nBasic Statistics:")
     print(df.describe())
+
+# Security utilities for command execution
+
+def clear_terminal() -> None:
+    """
+    Safely clear the terminal screen without command injection risk.
+    
+    Uses subprocess with argument list instead of os.system to prevent
+    command injection vulnerabilities (CWE-77, CWE-78, CWE-88).
+    """
+    if os.name == 'nt':  # Windows
+        subprocess.run(['cmd', '/c', 'cls'], check=False)
+    else:  # Unix/Linux/MacOS
+        subprocess.run(['clear'], check=False)
+
+def safe_subprocess_run(
+    command: List[str],
+    capture_output: bool = True,
+    text: bool = True,
+    check: bool = True,
+    timeout: Optional[int] = 30,
+    **kwargs
+) -> subprocess.CompletedProcess:
+    """
+    Execute a subprocess command safely without shell injection risk.
+    
+    This function enforces secure subprocess execution by:
+    - Using argument lists instead of shell strings
+    - Never using shell=True
+    - Implementing timeout protection
+    - Validating command structure
+    
+    Args:
+        command: List of command and arguments (e.g., ['ls', '-la', '/tmp'])
+        capture_output: Whether to capture stdout and stderr
+        text: Return output as text (string) instead of bytes
+        check: Raise CalledProcessError if command returns non-zero exit code
+        timeout: Maximum seconds to wait for command completion
+        **kwargs: Additional arguments passed to subprocess.run
+        
+    Returns:
+        CompletedProcess instance with returncode, stdout, stderr
+        
+    Raises:
+        ValueError: If command is not a list or is empty
+        subprocess.CalledProcessError: If check=True and command fails
+        subprocess.TimeoutExpired: If command exceeds timeout
+        
+    Security:
+        - Prevents CWE-77: Command Injection
+        - Prevents CWE-78: OS Command Injection
+        - Prevents CWE-88: Argument Injection
+        
+    Example:
+        >>> result = safe_subprocess_run(['echo', 'Hello World'])
+        >>> print(result.stdout)
+        Hello World
+    """
+    # Validate command is a list
+    if not isinstance(command, list):
+        raise ValueError("Command must be a list of arguments, not a string")
+    
+    if len(command) == 0:
+        raise ValueError("Command list cannot be empty")
+    
+    # Validate all arguments are strings
+    if not all(isinstance(arg, str) for arg in command):
+        raise ValueError("All command arguments must be strings")
+    
+    # Execute safely without shell
+    return subprocess.run(
+        command,
+        capture_output=capture_output,
+        text=text,
+        check=check,
+        timeout=timeout,
+        shell=False,  # Critical: Never use shell=True
+        **kwargs
+    )
+
+def validate_command_argument(arg: str, allowed_chars: str = "a-zA-Z0-9._/-") -> bool:
+    """
+    Validate that a command argument contains only allowed characters.
+    
+    Args:
+        arg: Argument to validate
+        allowed_chars: Regex character class of allowed characters
+        
+    Returns:
+        True if valid, False otherwise
+        
+    Example:
+        >>> validate_command_argument("safe_file.txt")
+        True
+        >>> validate_command_argument("dangerous; rm -rf /")
+        False
+    """
+    import re
+    # Escape special regex characters in allowed_chars
+    pattern = f"^[{allowed_chars}]+$"
+    return bool(re.match(pattern, arg))
+
+def sanitize_for_shell(value: str) -> str:
+    """
+    Sanitize a string for safe use in shell commands using shlex.quote().
+    
+    This should only be used when shell=True is absolutely necessary.
+    Prefer using safe_subprocess_run() with argument lists instead.
+    
+    Args:
+        value: String to sanitize
+        
+    Returns:
+        Safely quoted string for shell use
+        
+    Example:
+        >>> sanitize_for_shell("file with spaces.txt")
+        "'file with spaces.txt'"
+    """
+    return shlex.quote(value)

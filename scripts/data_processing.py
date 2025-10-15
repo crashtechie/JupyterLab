@@ -1,22 +1,241 @@
 """
 Data processing utilities for data science workflows.
+
+Security Features:
+- Role-based access control (RBAC)
+- Authentication decorators
+- Session management
+- Audit logging for sensitive operations
+- CWE-285 Authorization Bypass prevention
 """
 
 import pandas as pd
 import numpy as np
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Callable
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
+from functools import wraps
+from datetime import datetime
+import os
+import logging
+from pathlib import Path
 
-def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
+# Configure audit logging
+AUDIT_LOG_DIR = Path(__file__).parent.parent / "outputs" / "audit_logs"
+AUDIT_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+audit_logger = logging.getLogger('data_processing_audit')
+audit_logger.setLevel(logging.INFO)
+audit_handler = logging.FileHandler(AUDIT_LOG_DIR / 'data_processing_audit.log')
+audit_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+audit_logger.addHandler(audit_handler)
+
+# Role definitions
+ROLES = {
+    'admin': ['read', 'write', 'delete', 'scale', 'encode', 'split', 'process'],
+    'data_scientist': ['read', 'write', 'scale', 'encode', 'split', 'process'],
+    'data_analyst': ['read', 'scale', 'encode', 'process'],
+    'viewer': ['read']
+}
+
+# Session storage (in production, use Redis or database)
+_active_sessions: Dict[str, Dict[str, Any]] = {}
+
+
+class AuthorizationError(Exception):
+    """Raised when authorization check fails."""
+    pass
+
+
+class AuthenticationError(Exception):
+    """Raised when authentication fails."""
+    pass
+
+
+def create_session(user_id: str, role: str) -> str:
+    """
+    Create a new authenticated session.
+    
+    Args:
+        user_id: Unique user identifier
+        role: User role (admin, data_scientist, data_analyst, viewer)
+        
+    Returns:
+        Session token
+        
+    Raises:
+        ValueError: If role is invalid
+    """
+    if role not in ROLES:
+        raise ValueError(f"Invalid role. Must be one of: {', '.join(ROLES.keys())}")
+    
+    session_token = f"session_{user_id}_{datetime.now().timestamp()}"
+    _active_sessions[session_token] = {
+        'user_id': user_id,
+        'role': role,
+        'created_at': datetime.now(),
+        'permissions': ROLES[role]
+    }
+    
+    audit_logger.info(f"Session created: user={user_id}, role={role}, token={session_token}")
+    return session_token
+
+
+def get_session(session_token: str) -> Optional[Dict[str, Any]]:
+    """
+    Get session information.
+    
+    Args:
+        session_token: Session token
+        
+    Returns:
+        Session data or None if not found
+    """
+    return _active_sessions.get(session_token)
+
+
+def revoke_session(session_token: str) -> bool:
+    """
+    Revoke an active session.
+    
+    Args:
+        session_token: Session token to revoke
+        
+    Returns:
+        True if revoked, False if not found
+    """
+    if session_token in _active_sessions:
+        user_id = _active_sessions[session_token]['user_id']
+        del _active_sessions[session_token]
+        audit_logger.info(f"Session revoked: user={user_id}, token={session_token}")
+        return True
+    return False
+
+
+def require_permission(permission: str):
+    """
+    Decorator to require specific permission for function execution.
+    
+    Args:
+        permission: Required permission (read, write, delete, scale, encode, split, process)
+        
+    Usage:
+        @require_permission('write')
+        def process_data(df, session_token=None):
+            # Function code here
+            pass
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Extract session_token from kwargs
+            session_token = kwargs.get('session_token')
+            
+            if not session_token:
+                error_msg = f"Authentication required for {func.__name__}"
+                audit_logger.warning(f"{error_msg} - No session token provided")
+                raise AuthenticationError(error_msg)
+            
+            # Validate session
+            session = get_session(session_token)
+            if not session:
+                error_msg = f"Invalid or expired session for {func.__name__}"
+                audit_logger.warning(f"{error_msg} - Token: {session_token}")
+                raise AuthenticationError(error_msg)
+            
+            # Check permission
+            user_permissions = session['permissions']
+            if permission not in user_permissions:
+                error_msg = f"Permission denied: '{permission}' required for {func.__name__}"
+                audit_logger.warning(
+                    f"{error_msg} - User: {session['user_id']}, Role: {session['role']}"
+                )
+                raise AuthorizationError(error_msg)
+            
+            # Log successful authorization
+            audit_logger.info(
+                f"Authorized: user={session['user_id']}, role={session['role']}, "
+                f"function={func.__name__}, permission={permission}"
+            )
+            
+            # Remove session_token from kwargs before calling function
+            kwargs_cleaned = {k: v for k, v in kwargs.items() if k != 'session_token'}
+            
+            return func(*args, **kwargs_cleaned)
+        
+        return wrapper
+    return decorator
+
+
+def require_role(required_role: str):
+    """
+    Decorator to require specific role for function execution.
+    
+    Args:
+        required_role: Required role (admin, data_scientist, data_analyst, viewer)
+        
+    Usage:
+        @require_role('admin')
+        def delete_data(df, session_token=None):
+            # Function code here
+            pass
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # Extract session_token from kwargs
+            session_token = kwargs.get('session_token')
+            
+            if not session_token:
+                error_msg = f"Authentication required for {func.__name__}"
+                audit_logger.warning(f"{error_msg} - No session token provided")
+                raise AuthenticationError(error_msg)
+            
+            # Validate session
+            session = get_session(session_token)
+            if not session:
+                error_msg = f"Invalid or expired session for {func.__name__}"
+                audit_logger.warning(f"{error_msg} - Token: {session_token}")
+                raise AuthenticationError(error_msg)
+            
+            # Check role
+            user_role = session['role']
+            if user_role != required_role:
+                error_msg = f"Role '{required_role}' required for {func.__name__}, got '{user_role}'"
+                audit_logger.warning(
+                    f"{error_msg} - User: {session['user_id']}"
+                )
+                raise AuthorizationError(error_msg)
+            
+            # Log successful authorization
+            audit_logger.info(
+                f"Authorized: user={session['user_id']}, role={user_role}, "
+                f"function={func.__name__}, required_role={required_role}"
+            )
+            
+            # Remove session_token from kwargs before calling function
+            kwargs_cleaned = {k: v for k, v in kwargs.items() if k != 'session_token'}
+            
+            return func(*args, **kwargs_cleaned)
+        
+        return wrapper
+    return decorator
+
+@require_permission('read')
+def clean_column_names(df: pd.DataFrame, session_token: Optional[str] = None) -> pd.DataFrame:
     """
     Clean column names by removing spaces, special characters, and converting to lowercase.
     
     Args:
         df: Input DataFrame
+        session_token: Authentication session token (required)
         
     Returns:
         DataFrame with cleaned column names
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'read' permission
     """
     df_cleaned = df.copy()
     
@@ -29,10 +248,12 @@ def clean_column_names(df: pd.DataFrame) -> pd.DataFrame:
     
     return df_cleaned
 
+@require_permission('process')
 def handle_missing_values(df: pd.DataFrame, 
                          strategy: str = "drop",
                          columns: Optional[List[str]] = None,
-                         fill_value: Any = None) -> pd.DataFrame:
+                         fill_value: Any = None,
+                         session_token: Optional[str] = None) -> pd.DataFrame:
     """
     Handle missing values in DataFrame.
     
@@ -41,9 +262,14 @@ def handle_missing_values(df: pd.DataFrame,
         strategy: Strategy for handling missing values (drop, mean, median, mode, forward_fill, back_fill, custom)
         columns: Specific columns to process (if None, process all)
         fill_value: Custom fill value when strategy is 'custom'
+        session_token: Authentication session token (required)
         
     Returns:
         DataFrame with missing values handled
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'process' permission
     """
     df_processed = df.copy()
     
@@ -74,9 +300,11 @@ def handle_missing_values(df: pd.DataFrame,
     
     return df_processed
 
+@require_permission('encode')
 def encode_categorical_variables(df: pd.DataFrame, 
                                columns: Optional[List[str]] = None,
-                               method: str = "label") -> Tuple[pd.DataFrame, Dict[str, Any]]:
+                               method: str = "label",
+                               session_token: Optional[str] = None) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Encode categorical variables.
     
@@ -84,9 +312,14 @@ def encode_categorical_variables(df: pd.DataFrame,
         df: Input DataFrame
         columns: Columns to encode (if None, auto-detect categorical columns)
         method: Encoding method ('label', 'onehot')
+        session_token: Authentication session token (required)
         
     Returns:
         Tuple of (encoded DataFrame, encoders dictionary)
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'encode' permission
     """
     df_encoded = df.copy()
     encoders = {}
@@ -106,9 +339,11 @@ def encode_categorical_variables(df: pd.DataFrame,
     
     return df_encoded, encoders
 
+@require_permission('scale')
 def scale_features(df: pd.DataFrame, 
                   columns: Optional[List[str]] = None,
-                  method: str = "standard") -> Tuple[pd.DataFrame, Any]:
+                  method: str = "standard",
+                  session_token: Optional[str] = None) -> Tuple[pd.DataFrame, Any]:
     """
     Scale numerical features.
     
@@ -116,9 +351,14 @@ def scale_features(df: pd.DataFrame,
         df: Input DataFrame
         columns: Columns to scale (if None, auto-detect numerical columns)
         method: Scaling method ('standard', 'minmax')
+        session_token: Authentication session token (required)
         
     Returns:
         Tuple of (scaled DataFrame, scaler object)
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'scale' permission
     """
     df_scaled = df.copy()
     
@@ -136,9 +376,11 @@ def scale_features(df: pd.DataFrame,
     
     return df_scaled, scaler
 
+@require_permission('read')
 def detect_outliers(df: pd.DataFrame, 
                    columns: Optional[List[str]] = None,
-                   method: str = "iqr") -> pd.DataFrame:
+                   method: str = "iqr",
+                   session_token: Optional[str] = None) -> pd.DataFrame:
     """
     Detect outliers in numerical columns.
     
@@ -146,9 +388,14 @@ def detect_outliers(df: pd.DataFrame,
         df: Input DataFrame
         columns: Columns to check (if None, check all numerical columns)
         method: Method for outlier detection ('iqr', 'zscore')
+        session_token: Authentication session token (required)
         
     Returns:
         DataFrame with outlier indicators
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'read' permission
     """
     if columns is None:
         columns = df.select_dtypes(include=[np.number]).columns
@@ -170,11 +417,13 @@ def detect_outliers(df: pd.DataFrame,
     
     return outlier_df
 
+@require_permission('split')
 def split_data(df: pd.DataFrame, 
                target_column: str,
                test_size: float = 0.2,
                validation_size: float = 0.1,
-               random_state: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series]:
+               random_state: int = 42,
+               session_token: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.Series, pd.Series, pd.Series]:
     """
     Split data into train, validation, and test sets.
     
@@ -184,9 +433,14 @@ def split_data(df: pd.DataFrame,
         test_size: Proportion of test set
         validation_size: Proportion of validation set
         random_state: Random state for reproducibility
+        session_token: Authentication session token (required)
         
     Returns:
         Tuple of (X_train, X_val, X_test, y_train, y_val, y_test)
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'split' permission
     """
     X = df.drop(columns=[target_column])
     y = df[target_column]
@@ -205,15 +459,21 @@ def split_data(df: pd.DataFrame,
     
     return X_train, X_val, X_test, y_train, y_val, y_test
 
-def create_feature_summary(df: pd.DataFrame) -> pd.DataFrame:
+@require_permission('read')
+def create_feature_summary(df: pd.DataFrame, session_token: Optional[str] = None) -> pd.DataFrame:
     """
     Create a summary of features in the DataFrame.
     
     Args:
         df: Input DataFrame
+        session_token: Authentication session token (required)
         
     Returns:
         Summary DataFrame with feature statistics
+        
+    Raises:
+        AuthenticationError: If session_token is invalid or missing
+        AuthorizationError: If user lacks 'read' permission
     """
     summary_data = []
     

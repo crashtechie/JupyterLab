@@ -4,6 +4,12 @@ Docker Compose Jupyter Lab Setup Test Script
 
 This script tests the Docker Compose configuration end-to-end to ensure
 the Jupyter Lab environment is working correctly.
+
+Security Features:
+- Uses safe subprocess execution (no shell=True)
+- Command injection prevention (CWE-77, 78, 88)
+- Input validation for container names and commands
+- Argument list enforcement
 """
 
 import subprocess
@@ -14,6 +20,38 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from utils import safe_subprocess_run, validate_command_argument
+except ImportError:
+    # Fallback if utils not available (use safe subprocess directly)
+    def safe_subprocess_run(command, check=True, timeout=30, capture_output=True, text=True, cwd=None):
+        """Safe subprocess execution with argument list enforcement."""
+        if not isinstance(command, list):
+            raise TypeError("Command must be a list of arguments, not a string")
+        if not all(isinstance(arg, str) for arg in command):
+            raise TypeError("All command arguments must be strings")
+        
+        return subprocess.run(
+            command,
+            shell=False,  # Never use shell=True
+            check=check,
+            timeout=timeout,
+            capture_output=capture_output,
+            text=text,
+            cwd=cwd
+        )
+    
+    def validate_command_argument(arg, allowed_pattern=r'^[a-zA-Z0-9._\-/]+$'):
+        """Validate command arguments against allowed pattern."""
+        import re
+        if not isinstance(arg, str):
+            raise TypeError("Argument must be a string")
+        if not re.match(allowed_pattern, arg):
+            raise ValueError(f"Invalid argument format: {arg}")
 
 class DockerJupyterTester:
     def __init__(self):
@@ -36,26 +74,59 @@ class DockerJupyterTester:
         status_icon = "✅" if status == "PASS" else "❌" if status == "FAIL" else "⚠️"
         print(f"{status_icon} {test_name}: {message}")
         
-    def run_command(self, command, timeout=30):
-        """Run a shell command and return result"""
+    def run_command(self, command_args, timeout=30):
+        """
+        Run a command safely using argument lists (no shell=True).
+        
+        Args:
+            command_args: List of command arguments (or string to be converted)
+            timeout: Command timeout in seconds
+            
+        Returns:
+            Tuple of (success: bool, stdout: str, stderr: str)
+            
+        Security:
+            - Uses argument lists to prevent command injection
+            - Never uses shell=True
+            - Validates input types
+            - Enforces timeout protection
+        """
         try:
-            result = subprocess.run(
-                command, 
-                shell=True, 
-                capture_output=True, 
-                text=True, 
+            # Convert string to list if needed (for backwards compatibility)
+            if isinstance(command_args, str):
+                # Split simple commands safely
+                command_list = command_args.split()
+            else:
+                command_list = command_args
+            
+            # Validate command list
+            if not isinstance(command_list, list) or not command_list:
+                return False, "", "Invalid command format: must be non-empty list"
+            
+            if not all(isinstance(arg, str) for arg in command_list):
+                return False, "", "Invalid command format: all arguments must be strings"
+            
+            # Use safe_subprocess_run
+            result = safe_subprocess_run(
+                command_list,
+                check=False,  # Don't raise exception on non-zero exit
                 timeout=timeout,
-                cwd=self.project_root
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root)
             )
             return result.returncode == 0, result.stdout, result.stderr
+            
         except subprocess.TimeoutExpired:
             return False, "", "Command timed out"
+        except TypeError as e:
+            return False, "", f"Command format error: {str(e)}"
         except Exception as e:
             return False, "", str(e)
     
     def test_docker_availability(self):
         """Test if Docker and Docker Compose are available"""
-        success, stdout, stderr = self.run_command("docker --version")
+        success, stdout, stderr = self.run_command(["docker", "--version"])
         if success:
             docker_version = stdout.strip()
             self.log_test("Docker Availability", "PASS", docker_version)
@@ -63,7 +134,7 @@ class DockerJupyterTester:
             self.log_test("Docker Availability", "FAIL", f"Docker not available: {stderr}")
             return False
             
-        success, stdout, stderr = self.run_command("docker compose version")
+        success, stdout, stderr = self.run_command(["docker", "compose", "version"])
         if success:
             compose_version = stdout.strip()
             self.log_test("Docker Compose Availability", "PASS", compose_version)
@@ -74,7 +145,7 @@ class DockerJupyterTester:
     
     def test_compose_file_syntax(self):
         """Test Docker Compose file syntax"""
-        success, stdout, stderr = self.run_command("docker compose config")
+        success, stdout, stderr = self.run_command(["docker", "compose", "config"])
         if success:
             self.log_test("Compose File Syntax", "PASS", "Configuration is valid")
             return True
@@ -109,7 +180,7 @@ class DockerJupyterTester:
     def start_services(self):
         """Start Docker Compose services"""
         print("\n🚀 Starting Docker Compose services...")
-        success, stdout, stderr = self.run_command("docker compose up -d", timeout=120)
+        success, stdout, stderr = self.run_command(["docker", "compose", "up", "-d"], timeout=120)
         
         if success:
             self.log_test("Service Startup", "PASS", "Services started successfully")
@@ -122,7 +193,7 @@ class DockerJupyterTester:
     
     def test_container_running(self):
         """Test if Jupyter container is running"""
-        success, stdout, stderr = self.run_command("docker compose ps")
+        success, stdout, stderr = self.run_command(["docker", "compose", "ps"])
         
         if success and "jupyterlab-datascience" in stdout:
             if "Up" in stdout:
@@ -179,9 +250,10 @@ class DockerJupyterTester:
                 f.write(test_content)
             
             # Check if file appears in container
-            success, stdout, stderr = self.run_command(
-                "docker compose exec -T jupyter ls /home/jovyan/work/notebooks/"
-            )
+            success, stdout, stderr = self.run_command([
+                "docker", "compose", "exec", "-T", "jupyter",
+                "ls", "/home/jovyan/work/notebooks/"
+            ])
             
             if success and "test_volume_mount.txt" in stdout:
                 # Clean up test file
@@ -199,9 +271,10 @@ class DockerJupyterTester:
     def test_python_environment(self):
         """Test Python environment and packages in container"""
         # Test basic Python execution
-        success, stdout, stderr = self.run_command(
-            'docker compose exec -T jupyter python -c "import sys; print(sys.version)"'
-        )
+        success, stdout, stderr = self.run_command([
+            "docker", "compose", "exec", "-T", "jupyter",
+            "python", "-c", "import sys; print(sys.version)"
+        ])
         
         if success:
             python_version = stdout.strip()
@@ -215,9 +288,15 @@ class DockerJupyterTester:
         failed_packages = []
         
         for package in packages_to_test:
-            success, stdout, stderr = self.run_command(
-                f'docker compose exec -T jupyter python -c "import {package}; print({package}.__version__)"'
-            )
+            # Validate package name (alphanumeric only for security)
+            if not package.replace('_', '').isalnum():
+                failed_packages.append(package)
+                continue
+            
+            success, stdout, stderr = self.run_command([
+                "docker", "compose", "exec", "-T", "jupyter",
+                "python", "-c", f"import {package}; print({package}.__version__)"
+            ])
             
             if not success:
                 failed_packages.append(package)
@@ -280,7 +359,7 @@ class DockerJupyterTester:
     def stop_services(self):
         """Stop Docker Compose services"""
         print("\n🛑 Stopping Docker Compose services...")
-        success, stdout, stderr = self.run_command("docker compose down")
+        success, stdout, stderr = self.run_command(["docker", "compose", "down"])
         
         if success:
             self.log_test("Service Shutdown", "PASS", "Services stopped successfully")
