@@ -18,6 +18,7 @@ Technical guides for developers working on the project.
 - [**Security Best Practices**](development/Security-Best-Practices.md) - Security guidelines and best practices
 - [**384-Bit Security Implementation**](development/384-Bit-Security-Implementation.md) - Enhanced token security details ⭐
 - [**Secure Token Display Methods**](development/Secure-Token-Display-Methods.md) - Secure methods for token recovery 🔐
+- [**Semantic Versioning Guide**](development/Semantic-Versioning.md) - Automated version management system 🆕
 
 ## 🧪 Testing (Test Documentation)
 Testing procedures, security validation, and cross-platform testing guides.

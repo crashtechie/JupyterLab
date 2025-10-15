@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.7.0] - 2025-10-15
+
+### Added
+- 🔄 **Automated Semantic Versioning System**
+  - Created `version.txt` for centralized version tracking
+  - Implemented `scripts/version_manager.py` for version management
+  - Added GitHub Actions workflow for automated releases (`.github/workflows/semantic-release.yml`)
+  - Automated version bumping based on conventional commit messages
+  - Automatic changelog updates and GitHub release creation
+  - Support for major, minor, and patch version bumps
+  - Manual trigger option via GitHub Actions UI
+  
+- 📚 **Contribution Guidelines**
+  - Created comprehensive `CONTRIBUTING.md` with:
+    - Conventional commit format guidelines
+    - Semantic versioning rules and examples
+    - Testing requirements and procedures
+    - Pull request process documentation
+    - Code style guidelines
+  
+- 📖 **Semantic Versioning Documentation**
+  - Added `documentation/development/Semantic-Versioning.md`
+  - Detailed explanation of automated versioning system
+  - Manual version management instructions
+  - Commit message best practices
+  - Workflow examples and troubleshooting
+
+### Changed
+- 🔧 **Version Management**
+  - Centralized version in `version.txt` (previously scattered)
+  - Automated updates to README.md version badge
+  - Automated CHANGELOG.md entry creation
+  - Version format standardized to semantic versioning (MAJOR.MINOR.PATCH)
+
 ## [v0.6.0] - 2025-10-15
 
 ### Changed

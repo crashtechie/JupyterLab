@@ -72,8 +72,14 @@ Comprehensive documentation is available in the `documentation/` folder:
 - **🛡️ [Security Best Practices](documentation/development/Security-Best-Practices.md)** - Security guidelines and best practices
 - **🧪 [Testing Documentation](documentation/testing/README.md)** - Testing procedures and validation
 - **🔒 [Security Documentation](documentation/security/README.md)** - Security issues and code reviews
+- **🔄 [Semantic Versioning](documentation/development/Semantic-Versioning.md)** - Automated version management
+
+### Contributing
+- **📋 [Contributing Guide](CONTRIBUTING.md)** - How to contribute (includes commit conventions)
+- **🔄 [Semantic Versioning Quick Reference](.github/SEMANTIC_VERSIONING.md)** - Version management cheat sheet
 
 > **New Users**: Start with the [Development Setup Guide](documentation/development/Development-Setup.md)  
+> **Contributing**: Read [CONTRIBUTING.md](CONTRIBUTING.md) for commit message conventions  
 > **Security Focus**: See [Security Documentation](documentation/security/README.md) and [Security Best Practices](documentation/development/Security-Best-Practices.md)  
 > **Testing**: Run [Cross-Platform Tests](documentation/testing/cross-platform-testing.md) to validate your setup
 

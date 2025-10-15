@@ -1,0 +1,167 @@
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Automated Semantic Release
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'chore: bump version')"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Determine version bump type
+        id: bump_type
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "type=${{ github.event.inputs.version_bump }}" >> $GITHUB_OUTPUT
+          else
+            # Analyze commit messages to determine bump type
+            COMMIT_MSG="${{ github.event.head_commit.message }}"
+            
+            if echo "$COMMIT_MSG" | grep -qiE "^(BREAKING CHANGE|feat!|fix!|refactor!|perf!)"; then
+              echo "type=major" >> $GITHUB_OUTPUT
+            elif echo "$COMMIT_MSG" | grep -qiE "^feat"; then
+              echo "type=minor" >> $GITHUB_OUTPUT
+            elif echo "$COMMIT_MSG" | grep -qiE "^(fix|perf|refactor)"; then
+              echo "type=patch" >> $GITHUB_OUTPUT
+            else
+              echo "type=none" >> $GITHUB_OUTPUT
+            fi
+          fi
+      
+      - name: Get current version
+        id: current_version
+        run: |
+          VERSION=$(cat version.txt)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: v$VERSION"
+      
+      - name: Bump version
+        id: new_version
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          python scripts/version_manager.py --bump ${{ steps.bump_type.outputs.type }}
+          NEW_VERSION=$(cat version.txt)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: v$NEW_VERSION"
+      
+      - name: Extract changelog for release
+        id: changelog
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          # Extract the latest version section from CHANGELOG.md
+          VERSION="${{ steps.new_version.outputs.version }}"
+          
+          # Get the section between the new version and the next version
+          NOTES=$(awk "/## \[v${VERSION}\]/,/## \[v[0-9]/" CHANGELOG.md | sed '1d;$d' | sed '/^$/d')
+          
+          if [ -z "$NOTES" ]; then
+            NOTES="Release v${VERSION}"
+          fi
+          
+          # Save to file for multi-line output
+          echo "$NOTES" > release_notes.txt
+          echo "Generated release notes for v${VERSION}"
+      
+      - name: Commit version changes
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          git add version.txt README.md CHANGELOG.md
+          git commit -m "chore: bump version to v${{ steps.new_version.outputs.version }}
+          
+          Automated version bump from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}
+          Bump type: ${{ steps.bump_type.outputs.type }}
+          
+          [skip ci]"
+      
+      - name: Create and push tag
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          git tag -a "v${{ steps.new_version.outputs.version }}" -m "Release v${{ steps.new_version.outputs.version }}"
+          git push origin ${{ github.ref_name }}
+          git push origin "v${{ steps.new_version.outputs.version }}"
+      
+      - name: Create GitHub Release
+        if: steps.bump_type.outputs.type != 'none' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.version }}
+          name: Release v${{ steps.new_version.outputs.version }}
+          body_path: release_notes.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create pre-release for develop
+        if: steps.bump_type.outputs.type != 'none' && github.ref == 'refs/heads/develop'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.new_version.outputs.version }}
+          name: Pre-release v${{ steps.new_version.outputs.version }}
+          body_path: release_notes.txt
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Summary
+        if: steps.bump_type.outputs.type != 'none'
+        run: |
+          echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Previous Version:** v${{ steps.current_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version:** v${{ steps.new_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bump Type:** ${{ steps.bump_type.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** v${{ steps.new_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Release Notes" >> $GITHUB_STEP_SUMMARY
+          cat release_notes.txt >> $GITHUB_STEP_SUMMARY
+      
+      - name: No release needed
+        if: steps.bump_type.outputs.type == 'none'
+        run: |
+          echo "## ℹ️ No Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Commit message did not trigger a version bump." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Use conventional commit prefixes to trigger releases:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`feat:\` - New feature (minor bump)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`fix:\` - Bug fix (patch bump)" >> $GITHUB_STEP_SUMMARY
+          echo "- \`BREAKING CHANGE:\` - Breaking change (major bump)" >> $GITHUB_STEP_SUMMARY
