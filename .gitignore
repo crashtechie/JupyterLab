@@ -202,4 +202,4 @@ Icon?
 *.backup
 
 # local files
-/documents/
+documentation/security/

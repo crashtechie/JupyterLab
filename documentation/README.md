@@ -1,6 +1,6 @@
 # Documentation Index
 
-Welcome to the Jupyter Lab Docker Environment documentation. This documentation is organized into two main sections:
+Welcome to the Jupyter Lab Docker Environment documentation. This documentation is organized into four main sections:
 
 ## 📚 Wiki (User Guides)
 User-facing guides for working with the Jupyter Lab environment.
@@ -19,25 +19,49 @@ Technical guides for developers working on the project.
 - [**384-Bit Security Implementation**](development/384-Bit-Security-Implementation.md) - Enhanced token security details ⭐
 - [**Secure Token Display Methods**](development/Secure-Token-Display-Methods.md) - Secure methods for token recovery 🔐
 
+## 🧪 Testing (Test Documentation)
+Testing procedures, security validation, and cross-platform testing guides.
+
+### [📖 Testing Overview](testing/README.md)
+- [**Docker Security Testing**](testing/docker-security-testing.md) - Comprehensive security validation tests
+- [**Cross-Platform Testing**](testing/cross-platform-testing.md) - Multi-platform testing procedures
+
+## 🔒 Security (Security Documentation)
+Security vulnerability reports, code reviews, and security audit results.
+
+### [📖 Security Overview](security/README.md)
+- [**Security Issues Index**](security/issues/README.md) - All security vulnerabilities and fixes
+- [**Code Reviews**](security/reviews/) - Security audit and code review reports
+
 ## 🚀 Quick Navigation
 
 ### New Users Start Here
 1. [Development Setup Guide](development/Development-Setup.md) - Get up and running
 2. [Jupyter Token Recovery Guide](wiki/Jupyter-Token-Recovery.md) - Access your environment
+3. [Cross-Platform Testing](testing/cross-platform-testing.md) - Test your setup
 
 ### Security-Focused Users
 1. [Security Best Practices](development/Security-Best-Practices.md) - Security overview
-2. [Jupyter Token Generation Guide](wiki/Jupyter-Token-Generation.md) - Secure token creation
+2. [Security Issues & Fixes](security/issues/README.md) - Vulnerability reports
+3. [Docker Security Testing](testing/docker-security-testing.md) - Validate security fixes
+
+### Testing & Quality Assurance
+1. [Testing Overview](testing/README.md) - All testing documentation
+2. [Docker Security Testing](testing/docker-security-testing.md) - Security validation
+3. [Cross-Platform Testing](testing/cross-platform-testing.md) - Platform compatibility
 
 ### Advanced Configuration
 1. [Environment Configuration Guide](development/Environment-Configuration.md) - Detailed configuration options
 2. [Development Setup Guide](development/Development-Setup.md) - Advanced setup scenarios
+3. [Security Documentation](security/README.md) - Security reports and reviews
 
 ## 📋 Documentation Standards
 
 ### File Organization
 - **Wiki** (`/documentation/wiki/`) - User-facing guides in markdown format
 - **Development** (`/documentation/development/`) - Technical developer documentation
+- **Testing** (`/documentation/testing/`) - Testing procedures and validation
+- **Security** (`/documentation/security/`) - Security reports, issues, and reviews
 
 ### Writing Guidelines
 - Use clear, concise language

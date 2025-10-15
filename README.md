@@ -70,9 +70,12 @@ Comprehensive documentation is available in the `documentation/` folder:
 - **🛠️ [Development Setup](documentation/development/Development-Setup.md)** - Complete setup instructions for developers
 - **⚙️ [Environment Configuration](documentation/development/Environment-Configuration.md)** - Environment variable configuration
 - **🛡️ [Security Best Practices](documentation/development/Security-Best-Practices.md)** - Security guidelines and best practices
+- **🧪 [Testing Documentation](documentation/testing/README.md)** - Testing procedures and validation
+- **🔒 [Security Documentation](documentation/security/README.md)** - Security issues and code reviews
 
 > **New Users**: Start with the [Development Setup Guide](documentation/development/Development-Setup.md)  
-> **Security Focus**: See [Security Best Practices](documentation/development/Security-Best-Practices.md) and [Token Guides](documentation/wiki/)
+> **Security Focus**: See [Security Documentation](documentation/security/README.md) and [Security Best Practices](documentation/development/Security-Best-Practices.md)  
+> **Testing**: Run [Cross-Platform Tests](documentation/testing/cross-platform-testing.md) to validate your setup
 
 ## �📁 Project Structure
 
@@ -90,10 +93,18 @@ JupyterLab/
 │   ├── wiki/              # 📚 User guides
 │   │   ├── Jupyter-Token-Recovery.md    # Token recovery methods
 │   │   └── Jupyter-Token-Generation.md  # Token generation guide
-│   └── development/        # 🛠️ Developer documentation
-│       ├── Development-Setup.md         # Setup instructions
-│       ├── Environment-Configuration.md # Config guide
-│       └── Security-Best-Practices.md   # Security guidelines
+│   ├── development/        # 🛠️ Developer documentation
+│   │   ├── Development-Setup.md         # Setup instructions
+│   │   ├── Environment-Configuration.md # Config guide
+│   │   └── Security-Best-Practices.md   # Security guidelines
+│   ├── testing/           # 🧪 Testing documentation
+│   │   ├── README.md                    # Testing overview
+│   │   ├── docker-security-testing.md   # Security validation
+│   │   └── cross-platform-testing.md    # Platform testing
+│   └── security/          # 🔒 Security documentation
+│       ├── README.md                    # Security overview
+│       ├── issues/                      # Security vulnerability reports
+│       └── reviews/                     # Code review reports
 ├── notebooks/               # Jupyter notebooks
 │   ├── exploratory/        # Data exploration notebooks
 │   ├── analysis/           # Analysis notebooks  

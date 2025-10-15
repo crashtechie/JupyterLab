@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.6.0] - 2025-10-15
+
+### Changed
+- 📁 **Documentation Structure Reorganization** (Professional Best Practices)
+  - Created unified `/documentation` structure with four main sections
+  - Added `/documentation/testing/` for all testing documentation
+  - Added `/documentation/security/` for security reports and reviews
+  - Moved `CROSS_PLATFORM_TESTING.md` → `documentation/testing/cross-platform-testing.md`
+  - Moved `README_DOCKER_TESTS.md` → `documentation/testing/docker-security-testing.md`
+  - Migrated all content from `/documents/` to appropriate documentation sections
+  - Removed duplicate `/documents/` folder (consolidated to `/documentation/`)
+  - Created comprehensive README files for testing and security sections
+  - Updated all cross-references and navigation paths
+
+### Documentation
+- ✨ **New Documentation Structure**:
+  ```
+  documentation/
+  ├── wiki/           # User guides
+  ├── development/    # Developer guides
+  ├── testing/        # Testing procedures & validation
+  └── security/       # Security issues & code reviews
+  ```
+- 📖 Added `documentation/testing/README.md` - Testing overview and procedures
+- 🔒 Added `documentation/security/README.md` - Security documentation index
+- 🔗 Updated all documentation cross-references in README.md and documentation/README.md
+
 ## [v0.5.0] - 2025-10-15
 
 ### Added
