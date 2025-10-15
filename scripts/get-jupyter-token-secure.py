@@ -175,35 +175,6 @@ def qr_code_method(token):
         print("💡 Install with: pip install qrcode[pil]")
         return False
 
-def masked_display_method(token, mask_level="high"):
-    """Method 5: Masked display with partial token"""
-    
-    if mask_level == "high":
-        # Show only 8 chars from each end
-        visible = 8
-        masked = f"{token[:visible]}{'*' * (len(token) - 2*visible)}{token[-visible:]}"
-    elif mask_level == "medium": 
-        # Show 12 chars from each end
-        visible = 12
-        masked = f"{token[:visible]}{'*' * (len(token) - 2*visible)}{token[-visible:]}"
-    else:
-        # Show 16 chars from each end
-        visible = 16
-        masked = f"{token[:visible]}{'*' * (len(token) - 2*visible)}{token[-visible:]}"
-    
-    print(f"\n🔑 Partial Token Display ({mask_level} security):")
-    print("=" * 50)
-    print(f"Token: {masked}")
-    print(f"🌐 URL:  http://localhost:8888/lab?token=[FULL_TOKEN]")
-    print("=" * 50)
-    
-    print(f"\n💡 To get full token:")
-    print(f"   1. Use clipboard method (most secure)")
-    print(f"   2. Check .env file directly")
-    print(f"   3. Use temporary display method")
-    
-    return True
-
 def choose_display_method(token):
     """Let user choose the most appropriate secure method"""
     
@@ -212,7 +183,6 @@ def choose_display_method(token):
         '2': ('Temporary Display', lambda t: temporary_display_method(t), '🔥 Auto-Clear'),
         '3': ('Interactive Secure', interactive_secure_method, '🔐 Multi-Check'),
         '4': ('QR Code', qr_code_method, '📱 Mobile Scan'),
-        '5': ('Masked Display', masked_display_method, '👁️ Partial View'),
     }
     
     print("\n🔐 Select Secure Token Display Method:")
@@ -225,7 +195,7 @@ def choose_display_method(token):
     print("=" * 40)
     
     while True:
-        choice = input("\n🎯 Choose method (1-5, 0 to cancel): ").strip()
+        choice = input("\n🎯 Choose method (1-4, 0 to cancel): ").strip()
         
         if choice == '0':
             print("🚫 Token access cancelled")
@@ -236,7 +206,7 @@ def choose_display_method(token):
             print(f"\n🔄 Using: {method_name}")
             return method_func(token)
         
-        print("❌ Invalid choice. Please select 1-5 or 0.")
+        print("❌ Invalid choice. Please select 1-4 or 0.")
 
 def main():
     """Main function with enhanced security options"""

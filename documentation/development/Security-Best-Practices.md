@@ -165,7 +165,7 @@ jobs:
 - **Generation**: Use `python scripts/generate-postgres-password.py` for 384-bit security
 - **Recovery**: Use secure methods from `get-postgres-password-secure.py`
 - **Storage**: Passwords stored securely in `.env` with 600 permissions
-- **Access**: Multiple security levels available (clipboard to masked display)
+- **Access**: Multiple ultra-secure methods available (clipboard, temporary, interactive, QR)
 
 ### Database Connection Security
 ```bash

@@ -62,8 +62,8 @@ docker compose logs -f jupyter
 
 ### 4. Access Jupyter Lab
 ```bash
-# Get access URL with token
-python scripts/get-jupyter-token.py
+# Get access URL with ultra-secure methods
+python scripts/get-jupyter-token-secure.py
 
 # Or manually construct URL
 echo "http://localhost:8888/lab?token=$(grep JUPYTER_TOKEN .env | cut -d= -f2)"
@@ -119,7 +119,7 @@ docker compose up -d
 docker compose ps
 
 # 3. Access Jupyter Lab
-python scripts/get-jupyter-token.py
+python scripts/get-jupyter-token-secure.py
 
 # 4. Work on notebooks/code
 
@@ -174,9 +174,7 @@ JupyterLab/
 │
 ├── scripts/                      # Automation scripts
 │   ├── generate-jupyter-token.py # Token generation
-│   ├── get-jupyter-token.py      # Token recovery
-│   ├── get-jupyter-token.ps1     # PowerShell version
-│   ├── get-jupyter-token.sh      # Bash version
+│   ├── get-jupyter-token-secure.py # Ultra-secure token recovery
 │   │
 │   ├── tests/                    # Test scripts
 │   │   ├── run_all_tests.py

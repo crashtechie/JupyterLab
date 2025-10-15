@@ -13,55 +13,14 @@ python scripts/get-jupyter-token-secure.py
 - 🔥 **Temporary Display** - Auto-clearing after 8 seconds
 - 🔐 **Interactive Secure** - Multi-confirmation security checks
 - 📱 **QR Code Display** - Mobile scanning (no text token)
-- 👁️ **Masked Display** - Partial token verification only
-- 🛡️ **Security Analysis** - Environment safety detection
+- ️ **Security Analysis** - Environment safety detection
 
 **Dependencies (optional):**
 ```bash
 pip install pyperclip qrcode[pil]  # For enhanced security features
 ```
 
-### 2. Standard Python Script (Cross-Platform) 
-```bash
-python scripts/get-jupyter-token.py
-```
-**Features:**
-- Cross-platform compatibility
-- Input validation and error handling
-- Basic secure token display
-- Interactive URL generation
-
-### 3. PowerShell Script (Windows)
-```powershell
-.\scripts\get-jupyter-token.ps1
-```
-**Options:**
-```powershell
-# Show URLs automatically
-.\scripts\get-jupyter-token.ps1 -ShowUrls
-
-# Quiet mode (token only)
-.\scripts\get-jupyter-token.ps1 -Quiet
-
-# Custom .env file
-.\scripts\get-jupyter-token.ps1 -EnvFile "path/to/.env"
-```
-
-### 4. Bash Script (Linux/macOS)
-```bash
-chmod +x scripts/get-jupyter-token.sh
-./scripts/get-jupyter-token.sh
-```
-**Options:**
-```bash
-# Show URLs automatically
-./scripts/get-jupyter-token.sh .env yes
-
-# Token only
-./scripts/get-jupyter-token.sh .env no
-```
-
-### 5. Command Line One-Liners
+### 2. Command Line One-Liners
 
 #### PowerShell (Windows)
 ```powershell
@@ -94,13 +53,7 @@ with open('.env') as f:
 "
 ```
 
-### 6. Docker Compose Logs Method
-```bash
-# Get auto-generated URLs from container logs
-docker compose logs jupyter 2>/dev/null | grep -E "http://.*:8888"
-```
-
-## � Enhanced Security Methods (NEW)
+## 🛡️ Enhanced Security Methods (RECOMMENDED)
 
 ### Ultra-Secure Recovery Options
 
@@ -147,16 +100,6 @@ python scripts/get-jupyter-token-secure.py
 - ✅ **Visual pattern encoding** only
 - ✅ **Screenshot resistant** to casual viewing
 
-#### 👁️ **Method 5: Masked Display (Verification)**
-```bash
-python scripts/get-jupyter-token-secure.py
-# Choose option 5: Masked Display
-```
-- ✅ **Partial token verification** only
-- ✅ **Safe for screenshots** and sharing
-- ✅ **Token format validation** 
-- ✅ **Guidance for full access**
-
 ### Security Method Comparison
 
 | Method | Security | Screen Exposure | Dependencies | Best For |
@@ -165,8 +108,6 @@ python scripts/get-jupyter-token-secure.py
 | **Temporary Display** | 🔒🔒🔒🔒⭕ | 8 seconds | None | **Development** |
 | **Interactive Secure** | 🔒🔒🔒🔒⭕ | User-controlled | None | **Shared Systems** |
 | **QR Code** | 🔒🔒🔒⭕⭕ | Pattern only | qrcode | **Mobile Access** |
-| **Masked Display** | 🔒🔒🔒⭕⭕ | Partial only | None | **Verification** |
-| **Standard Script** | 🔒🔒⭕⭕⭕ | Full token | None | **Legacy** |
 
 ## �🛡️ Security Features
 
@@ -231,15 +172,6 @@ pip install qrcode[pil]
 python scripts/get-jupyter-token-secure.py
 # Select: 4. QR Code
 # Result: Scannable QR code, no text token
-```
-
-### Legacy Quick Access (Standard Method)
-```bash
-# Get URL and open browser (Linux/macOS)
-python scripts/get-jupyter-token.py | grep "Jupyter Lab:" | xargs open
-
-# Get URL and open browser (Windows)  
-python scripts/get-jupyter-token.py | Select-String "Jupyter Lab:" | % { Start-Process $_.Line.Split()[-1] }
 ```
 
 ### Automation Scripts
@@ -309,19 +241,14 @@ grep "^JUPYTER_TOKEN=" .env | grep -v "your-.*-token\|change-me" && echo "✅ To
 | ↳ Temporary Display | All | Very High | **Development** | None |
 | ↳ Interactive Secure | All | Very High | **Shared systems** | None |
 | ↳ QR Code | All | High | **Mobile access** | qrcode |
-| ↳ Masked Display | All | High | **Verification** | None |
-| Standard Python Script | All | Medium | **Legacy use** | None |
-| PowerShell Script | Windows | Medium | **Windows automation** | None |
-| Bash Script | Unix/Linux | Medium | **Unix automation** | None |
 | One-liners | All | Low | **Quick testing** | None |
-| Docker Logs | All | Medium | **Fallback method** | None |
 
 ### **🎯 Primary Recommendations:**
 
 1. **🏆 Production/Sensitive:** `python scripts/get-jupyter-token-secure.py` → Clipboard Copy
 2. **🔥 Development/Quick:** `python scripts/get-jupyter-token-secure.py` → Temporary Display  
-3. **📱 Mobile Access:** `python scripts/get-jupyter-token-secure.py` → QR Code
-4. **👁️ Verification Only:** `python scripts/get-jupyter-token-secure.py` → Masked Display
+3. **� Shared Systems:** `python scripts/get-jupyter-token-secure.py` → Interactive Secure
+4. **� Mobile Access:** `python scripts/get-jupyter-token-secure.py` → QR Code
 
 ## 🔗 Related Documentation
 

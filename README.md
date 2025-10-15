@@ -102,9 +102,7 @@ JupyterLab/
 │   ├── processed/         # Cleaned and processed data
 │   └── external/          # External datasets
 ├── scripts/               # Python modules and utilities
-│   ├── get-jupyter-token.py    # 🔐 Token recovery (Python)
-│   ├── get-jupyter-token.ps1   # 🔐 Token recovery (PowerShell)  
-│   ├── get-jupyter-token.sh    # 🔐 Token recovery (Bash)
+│   ├── get-jupyter-token-secure.py # 🔐 Ultra-secure token recovery
 │   ├── __init__.py            # Make it a Python package
 │   ├── utils.py              # Utility functions
 │   ├── data_processing.py     # Data processing functions

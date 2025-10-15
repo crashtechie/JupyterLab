@@ -97,29 +97,7 @@ python scripts/get-jupyter-token-secure.py  # Choose option 1
 
 ---
 
-### 5. **👁️ Masked Display Method (MODERATE SECURITY)**
-**Security Level:** 🔒🔒🔒⭕⭕ (3/5)
-
-**How it works:**
-- Shows partial token with masking
-- Displays first/last characters only
-- Provides guidance for full access
-- No dependencies required
-
-**Pros:**
-- ✅ Partial verification possible
-- ✅ No dependencies required
-- ✅ Safe for screenshots
-- ✅ Good for verification
-
-**Cons:**
-- ❌ Still shows token fragments
-- ❌ Doesn't provide direct access
-- ❌ Requires additional steps for full token
-
----
-
-### 6. **❌ Current Method (LEAST SECURE - NOT RECOMMENDED)**
+### 5. **❌ Current Method (LEAST SECURE - NOT RECOMMENDED)**
 **Security Level:** 🔒⭕⭕⭕⭕ (1/5)
 
 **How it works:**
@@ -141,7 +119,7 @@ python scripts/get-jupyter-token-secure.py  # Choose option 1
 1. **Default:** Clipboard Copy (if available)
 2. **Fallback:** Temporary Display with Auto-Clear
 3. **Alternative:** Interactive Secure Method
-4. **Verification:** Masked Display Method
+4. **Mobile Access:** QR Code Method
 
 ### **Enhanced Security Features to Add:**
 
