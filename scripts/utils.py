@@ -39,7 +39,7 @@ def get_project_root() -> Path:
 
 def get_data_path(filename: str, data_type: str = "raw") -> Path:
     """
-    Get path to data file.
+    Get path to data file with path traversal protection.
     
     Args:
         filename: Name of the data file
@@ -47,12 +47,33 @@ def get_data_path(filename: str, data_type: str = "raw") -> Path:
         
     Returns:
         Path to data file
+        
+    Raises:
+        ValueError: If path traversal attempt is detected
     """
-    return get_project_root() / "data" / data_type / filename
+    # Validate data_type is in allowed list
+    allowed_data_types = ["raw", "processed", "external"]
+    if data_type not in allowed_data_types:
+        raise ValueError(f"Invalid data_type. Must be one of: {allowed_data_types}")
+    
+    # Build base directory
+    base_dir = get_project_root() / "data" / data_type
+    base_dir_resolved = base_dir.resolve()
+    
+    # Resolve target path and ensure it's within base directory
+    target_path = (base_dir / filename).resolve()
+    
+    # Check for path traversal
+    try:
+        target_path.relative_to(base_dir_resolved)
+    except ValueError:
+        raise ValueError(f"Path traversal attempt detected: {filename}")
+    
+    return target_path
 
 def get_output_path(filename: str, output_type: str = "figures") -> Path:
     """
-    Get path to output file.
+    Get path to output file with path traversal protection.
     
     Args:
         filename: Name of the output file
@@ -60,10 +81,32 @@ def get_output_path(filename: str, output_type: str = "figures") -> Path:
         
     Returns:
         Path to output file
+        
+    Raises:
+        ValueError: If path traversal attempt is detected
     """
+    # Validate output_type is in allowed list
+    allowed_output_types = ["figures", "models", "reports"]
+    if output_type not in allowed_output_types:
+        raise ValueError(f"Invalid output_type. Must be one of: {allowed_output_types}")
+    
+    # Build base directory
     output_dir = get_project_root() / "outputs" / output_type
+    output_dir_resolved = output_dir.resolve()
+    
+    # Create directory if it doesn't exist
     output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir / filename
+    
+    # Resolve target path and ensure it's within base directory
+    target_path = (output_dir / filename).resolve()
+    
+    # Check for path traversal
+    try:
+        target_path.relative_to(output_dir_resolved)
+    except ValueError:
+        raise ValueError(f"Path traversal attempt detected: {filename}")
+    
+    return target_path
 
 def load_config(config_file: str = "config.json") -> Dict[str, Any]:
     """
