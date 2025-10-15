@@ -1,6 +1,6 @@
 # Jupyter Lab Data Science Project
 
-![Version](https://img.shields.io/badge/Version-v0.4.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-v0.7.0-blue.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docs.docker.com/compose/)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Lab-orange.svg)](https://jupyterlab.readthedocs.io/)
