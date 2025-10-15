@@ -1,6 +1,6 @@
 """
 Comprehensive Docker Container Test Suite
-Tests all resolved security issues (1-5) in the Docker environment
+Tests all resolved security issues (1-6) in the Docker environment
 
 Run this inside the Docker container to validate all fixes:
   docker exec jupyterlab-datascience python /home/jovyan/work/scripts/tests/test_docker_security_fixes.py
@@ -299,11 +299,90 @@ def check_environment():
     print()
     return is_docker
 
+def test_issue_06_authorization_bypass():
+    """Test Issue #06 - Authorization bypass in data processing"""
+    print("=" * 70)
+    print("ISSUE #06: High - Authorization Bypass (CWE-285)")
+    print("=" * 70)
+    
+    try:
+        import pandas as pd
+        from data_processing import (
+            create_session,
+            clean_column_names,
+            handle_missing_values,
+            AuthenticationError,
+            AuthorizationError
+        )
+        
+        # Create test DataFrame
+        df = pd.DataFrame({
+            'Name': ['Alice', 'Bob'],
+            'Age': [25, 30],
+            'Salary': [50000, 60000]
+        })
+        
+        test_results = []
+        
+        # Test 1: Authentication required
+        try:
+            clean_column_names(df)
+            print("✗ FAIL: Function allowed unauthenticated access")
+            test_results.append(False)
+        except AuthenticationError:
+            print("✓ PASS: Unauthenticated access blocked")
+            test_results.append(True)
+        
+        # Test 2: Valid session works
+        try:
+            token = create_session('test_user', 'admin')
+            result = clean_column_names(df, session_token=token)
+            print("✓ PASS: Valid authenticated access works")
+            test_results.append(True)
+        except Exception as e:
+            print(f"✗ FAIL: Valid authentication failed: {e}")
+            test_results.append(False)
+        
+        # Test 3: Authorization enforcement
+        try:
+            viewer_token = create_session('viewer', 'viewer')
+            handle_missing_values(df, session_token=viewer_token)
+            print("✗ FAIL: Unauthorized access allowed")
+            test_results.append(False)
+        except AuthorizationError:
+            print("✓ PASS: Unauthorized access blocked")
+            test_results.append(True)
+        
+        # Test 4: Role-based access control
+        try:
+            admin_token = create_session('admin', 'admin')
+            result = handle_missing_values(df, session_token=admin_token)
+            print("✓ PASS: Role-based access control working")
+            test_results.append(True)
+        except Exception as e:
+            print(f"✗ FAIL: RBAC failed: {e}")
+            test_results.append(False)
+        
+        all_passed = all(test_results)
+        if all_passed:
+            print("✓ CWE-285: Authorization bypass vulnerability RESOLVED\n")
+        else:
+            print("✗ Authorization bypass tests failed\n")
+        
+        return all_passed
+        
+    except Exception as e:
+        print(f"✗ FAIL: Error testing authorization: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 def main():
     """Run all security fix tests"""
     print("\n" + "=" * 70)
     print("DOCKER CONTAINER SECURITY VALIDATION")
-    print("Comprehensive Test Suite for Issues #01-#05")
+    print("Comprehensive Test Suite for Issues #01-#06")
     print("=" * 70 + "\n")
     
     is_docker = check_environment()
@@ -314,6 +393,7 @@ def main():
     results.append(("Issue #03: Password Leak", test_issue_03_postgres_password()))
     results.append(("Issue #04: Path Traversal", test_issue_04_path_traversal()))
     results.append(("Issue #05: Command Injection", test_issue_05_command_injection()))
+    results.append(("Issue #06: Authorization Bypass", test_issue_06_authorization_bypass()))
     
     print("=" * 70)
     print("FINAL RESULTS")
