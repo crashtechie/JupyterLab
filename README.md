@@ -1,9 +1,11 @@
 # Jupyter Lab Data Science Project
 
+![Version](https://img.shields.io/badge/Version-v0.4.0-blue.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://docs.docker.com/compose/)
 [![Jupyter](https://img.shields.io/badge/Jupyter-Lab-orange.svg)](https://jupyterlab.readthedocs.io/)
 [![Cross-Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen.svg)](https://github.com)
+[![Security](https://img.shields.io/badge/Security-384--bit-green.svg)](https://github.com)
 
 A professional Docker Compose setup for Jupyter Lab using the `jupyter/datascience-notebook` image with additional services for comprehensive data science workflows.
 

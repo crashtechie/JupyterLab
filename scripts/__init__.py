@@ -4,7 +4,7 @@ JupyterLab Data Science Project Utilities
 This package contains utility functions and modules for data science workflows.
 """
 
-__version__ = "1.0.0"
+__version__ = "0.4.0"
 __author__ = "Data Science Team"
 
 # Import common utilities for easy access
