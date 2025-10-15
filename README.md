@@ -56,7 +56,23 @@ docker compose up -d
 - **Lab Interface**: http://localhost:8888/lab
 - **Classic Notebook**: http://localhost:8888/tree
 
-## 📁 Project Structure
+## � Documentation
+
+Comprehensive documentation is available in the `documentation/` folder:
+
+### 📚 [Complete Documentation Index](documentation/README.md)
+
+### Quick Links
+- **🔐 [Token Recovery Guide](documentation/wiki/Jupyter-Token-Recovery.md)** - Secure methods to retrieve authentication tokens
+- **🎯 [Token Generation Guide](documentation/wiki/Jupyter-Token-Generation.md)** - How to generate secure authentication tokens  
+- **🛠️ [Development Setup](documentation/development/Development-Setup.md)** - Complete setup instructions for developers
+- **⚙️ [Environment Configuration](documentation/development/Environment-Configuration.md)** - Environment variable configuration
+- **🛡️ [Security Best Practices](documentation/development/Security-Best-Practices.md)** - Security guidelines and best practices
+
+> **New Users**: Start with the [Development Setup Guide](documentation/development/Development-Setup.md)  
+> **Security Focus**: See [Security Best Practices](documentation/development/Security-Best-Practices.md) and [Token Guides](documentation/wiki/)
+
+## �📁 Project Structure
 
 ```
 JupyterLab/
@@ -65,7 +81,17 @@ JupyterLab/
 ├── .env                      # Your environment variables (create from .env.example)
 ├── .gitignore               # Git ignore rules
 ├── README.md                # This file
+├── LICENSE                  # MIT License
 ├── requirements.txt         # Additional Python packages
+├── documentation/           # 📖 Complete project documentation
+│   ├── README.md           # Documentation index
+│   ├── wiki/              # 📚 User guides
+│   │   ├── Jupyter-Token-Recovery.md    # Token recovery methods
+│   │   └── Jupyter-Token-Generation.md  # Token generation guide
+│   └── development/        # 🛠️ Developer documentation
+│       ├── Development-Setup.md         # Setup instructions
+│       ├── Environment-Configuration.md # Config guide
+│       └── Security-Best-Practices.md   # Security guidelines
 ├── notebooks/               # Jupyter notebooks
 │   ├── exploratory/        # Data exploration notebooks
 │   ├── analysis/           # Analysis notebooks  
@@ -76,10 +102,19 @@ JupyterLab/
 │   ├── processed/         # Cleaned and processed data
 │   └── external/          # External datasets
 ├── scripts/               # Python modules and utilities
-│   ├── __init__.py       # Make it a Python package
-│   ├── utils.py          # Utility functions
-│   ├── data_processing.py # Data processing functions
-│   └── visualization.py  # Visualization helpers
+│   ├── get-jupyter-token.py    # 🔐 Token recovery (Python)
+│   ├── get-jupyter-token.ps1   # 🔐 Token recovery (PowerShell)  
+│   ├── get-jupyter-token.sh    # 🔐 Token recovery (Bash)
+│   ├── __init__.py            # Make it a Python package
+│   ├── utils.py              # Utility functions
+│   ├── data_processing.py     # Data processing functions
+│   ├── visualization.py      # Visualization helpers
+│   └── tests/               # 🧪 Testing framework
+│       ├── run_tests.ps1    # Windows PowerShell tests
+│       ├── run_tests.sh     # Universal Linux/Unix tests
+│       ├── run_tests_linux.sh  # Linux-optimized tests
+│       ├── run_tests_macos.sh  # macOS-optimized tests
+│       └── results/         # Test output directory
 ├── outputs/               # Generated outputs
 │   ├── figures/          # Charts and plots
 │   ├── models/           # Trained models

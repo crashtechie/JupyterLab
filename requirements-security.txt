@@ -1,0 +1,11 @@
+# Optional Security Dependencies for Enhanced Token Recovery
+# Install with: pip install -r requirements-security.txt
+
+# Clipboard integration for secure token copying
+pyperclip>=1.8.2
+
+# QR code generation for mobile token access
+qrcode[pil]>=7.4.2
+
+# Additional security utilities
+cryptography>=46.0.2
