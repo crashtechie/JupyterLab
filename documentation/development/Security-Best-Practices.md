@@ -11,6 +11,13 @@ This document outlines security best practices for the Jupyter Lab Docker develo
 - **Use environment variables** for token storage
 - **Implement token validation** in automation scripts
 
+### Database Password Security
+- **Generate 384-bit passwords** using cryptographically secure methods
+- **Never print passwords** to console or logs
+- **Use secure recovery methods** (clipboard, temporary display)
+- **Store passwords in .env files** with proper permissions (600)
+- **Rotate database passwords** quarterly or after exposure
+
 ### Access Control
 - **Restrict network access** to localhost by default
 - **Use HTTPS** in production environments
@@ -152,9 +159,37 @@ jobs:
 - [ ] Recovery procedures documented
 - [ ] Communication plan established
 
-## 🔗 Related Documentation
+## � Database Security
+
+### PostgreSQL Password Management
+- **Generation**: Use `python scripts/generate-postgres-password.py` for 384-bit security
+- **Recovery**: Use secure methods from `get-postgres-password-secure.py`
+- **Storage**: Passwords stored securely in `.env` with 600 permissions
+- **Access**: Multiple security levels available (clipboard to masked display)
+
+### Database Connection Security
+```bash
+# Secure password retrieval for database connections
+python scripts/get-postgres-password-secure.py --method clipboard
+
+# Environment-based connections (recommended)
+export POSTGRES_PASSWORD=$(grep POSTGRES_PASSWORD .env | cut -d'=' -f2)
+psql -h localhost -U postgres
+```
+
+### Database Security Checklist
+- [ ] Database passwords use 384-bit security
+- [ ] No passwords in connection strings or logs
+- [ ] Database access restricted to necessary hosts
+- [ ] Database logs monitored for suspicious activity
+- [ ] Regular password rotation implemented
+- [ ] Secure recovery methods documented for team
+
+## �🔗 Related Documentation
 
 - [Jupyter Token Generation Guide](../wiki/Jupyter-Token-Generation.md)
 - [Jupyter Token Recovery Guide](../wiki/Jupyter-Token-Recovery.md)
+- [PostgreSQL Password Recovery Guide](../wiki/PostgreSQL-Password-Recovery.md)
+- [384-Bit Security Implementation](./384-Bit-Security-Implementation.md)
 - [Development Setup](./Development-Setup.md)
 - [Environment Configuration](./Environment-Configuration.md)
